@@ -46,7 +46,7 @@ conda install -c defaults -c rdkit -c conda-forge numpy pandas scikit-learn rdki
 After this you can install CREAM with ``pip install .`` from this folder. 
 Check if it works with ``cream --help``.
 
-###Example
+### Example
 
 Calculate all RDKit desciptors for the example [hERG dataset](data/herg_chembl_fs.sdf):
 ```bash
