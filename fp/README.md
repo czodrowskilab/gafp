@@ -48,7 +48,7 @@ Check if it works with ``cream --help``.
 
 ### Example
 
-Calculate all RDKit desciptors for the example [hERG dataset](data/herg_chembl_fs.sdf):
+Calculate all RDKit descriptors for the example [hERG dataset](data/herg_chembl_fs.sdf):
 ```bash
 cream addprops --sdf herg_chembl_fs.sdf --save-pickle herg.pkl --value-tag pIC50
 ```
