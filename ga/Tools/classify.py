@@ -3,9 +3,6 @@ import rdkit
 from rdkit.Chem import ForwardSDMolSupplier, SDWriter, MolFromSmiles, AllChem
 
 
-def run(arg):
-    print(arg)
-
 def floatify(arg):
     v = None
     try:
@@ -29,8 +26,6 @@ def create_class_lambdas(arg):
         rule_lambda = eval("lambda x: "+ rule_split[1])
         rule_lambda.__name__ = rule_split[1]
         print("key: %s, lambda: %s" % (rule_class, rule_split[1]), rule_lambda)
-        print(rule_lambda(4.999))
-        print(rule_lambda(5.1))
         class_lambda_dict[rule_class] = rule_lambda
 
     return class_lambda_dict
@@ -50,6 +45,7 @@ def classify(sdf,label,lambdas):
         if mol is None:
             print("%d rdkit couldn't read molecule" % counter, file=sys.stderr)
             sys.stderr.flush()
+            continue
         c = None
         prop = floatify(mol.GetProp(label))
         if prop is None:
@@ -64,10 +60,6 @@ def classify(sdf,label,lambdas):
         if c is None:
             print("%d no prop range matched '%s' ..skip" % (counter, mol.GetProp(label)), prop,type(prop), file=sys.stderr)
             sys.stderr.flush()
-            print("try again",list(lambdas.values())[0].__name__,list(lambdas.values())[0](prop), prop>=5)
-            print("try again", list(lambdas.values())[1].__name__, list(lambdas.values())[1](prop), prop<5)
-            print("%s: "%list(lambdas.values())[0].__name__,list(lambdas.values())[0](4.999),list(lambdas.values())[0])
-            print("%s: "%list(lambdas.values())[1].__name__, list(lambdas.values())[1](4.999),list(lambdas.values())[1])
             sys.stdout.flush()
             continue
         mol.SetProp(new_label, c)
