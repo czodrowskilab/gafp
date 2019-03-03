@@ -38,9 +38,15 @@ the environment.
 Note that CREAM itself also works with Python 3.7 but at this point not all 
 dependencies are available for a newer Python version than 3.6.
 
-Now you have to install the dependencies with the following command:
+Now you have to install the dependencies with the following commands. In case of Linux:
 ```bash
 conda install -c defaults -c rdkit -c conda-forge numpy pandas scikit-learn rdkit xgboost tensorflow keras
+```
+
+In case of Windows:
+```bash
+conda install -c rdkit numpy pandas scikit-learn rdkit tensorflow keras
+pip install xgboost
 ```
 
 After this you can install CREAM with ``pip install .`` from this folder. 
