@@ -15,6 +15,12 @@ This is a genetic algorithm to optimize neural network architectures for specifi
 * CUDA: 7.5
 * CUDNN: 5.1.03
 
+Also tested with:
+* Keras: 2.2.2
+* Theano: 1.0.2
+* CUDA: 10.1
+* CUDNN: 10.1
+
 More recent versions of the libraries may work but are not tested.
 
 ### Installing
