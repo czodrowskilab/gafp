@@ -252,7 +252,8 @@ class Nan_stop_callback(keras.callbacks.Callback):
         pass
 
     def on_epoch_end(self, epoch, logs={}):
-        if epoch%5==0 and True in map(np.isnan, logs.values()):
+        if epoch%5==0 and logs.get("window_score") != None and True in map(np.isnan, logs.values()):
+            print("Nan_stop_callback has to stop the training")
             self.model.stop_training = True
 
 class Message_loop_callback(keras.callbacks.Callback):
@@ -348,7 +349,7 @@ class MyEarly_Stopping(keras.callbacks.Callback):
         if len(self.epoch_deque) == self.window_size:
             logs['window_score'] = window_score
         else:
-            logs['window_score'] = np.NaN
+            logs['window_score'] = None
 
         if len(self.epoch_deque) == self.window_size and self.monitor_op(window_score+self.min_delta,self.best):
             if self.verbose:
@@ -357,18 +358,16 @@ class MyEarly_Stopping(keras.callbacks.Callback):
             self.best_epoch = epoch
             self.best_window = self.window_deque.copy()
             self.best_epoch_window = self.epoch_deque.copy()
-            logs['best_score_center'] = self.best_window[self.window_center_idx]
-            logs['best_window_center'] = self.best_epoch_window[self.window_center_idx]
             self.wait = 0
         elif len(self.epoch_deque) != self.window_size:
             if self.verbose:
                 print("len(self.epoch_deque) != self.window_size ({} != {})".format(len(self.epoch_deque), self.window_size))
             pass
         else:
-            logs['best_score_center'] = np.NaN
-            logs['best_window_center'] = np.NaN
+            pass
 
             self.wait += 1
+            # print("new self.wait is ", self.wait, " self.patience is ", self.patience)
             if self.wait >= self.patience:
                 self.model.stop_training = True
 
@@ -1073,6 +1072,7 @@ class Worker_Client:
         print("valid keys are {}".format(self.model_cache_id))
         try:
             model = self.model_cache[command_id]['models']# we only have one model here
+            print("model type is ",type(model))
         except:
             print("couldnt find command_id {}".format(command_id))
             print('args are',model_path,command_id)
@@ -1086,11 +1086,14 @@ class Worker_Client:
                         pickle.dump(model, f)
 
                 elif options.model == "NeuralNet":
+                    if(model is None):
+                        print("Model", command_id, "could not be trained, thus we can't save it")
+                        break
                     model.save(model_path)
                 break
             except:
-               print("error while saving model", model_path, command_id)
-            print("lets try again!")
+                print("error while saving model", model_path, command_id)
+                print("lets try again!")
 
     def run_evaluation(self,command=None,config=None):
 
@@ -1147,6 +1150,7 @@ class Worker_Client:
         self.model_cache_id.append(id)
         self.model_cache[id] = {'models': best_model, 'scores': score, 'threshs': opt_threshold,
                                 'net_arch': net_arch}
+        print("model entry is",self.model_cache[id])
         print("save entry {} into model_cache.. -> {}".format(id,self.model_cache[id]))
         print("cache-size is now ids: {}, models: {}".format(len(self.model_cache_id),len(self.model_cache)))
 

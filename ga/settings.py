@@ -2,24 +2,8 @@ import math
 import socket
 import numpy as np
 
-# curses GUI-settings
-screen_xsize = 12 # width of population-windows
-screen_ysize = 9  # height of ...
-screen_input_timeout = 400 #miliseconds
-screen_border_top = 1
-screen_border_bottom = 1
-screen_border_left = 1
-screen_border_right = 1
-screen_v_spacer = 1
-screen_h_spacer = 1
-screen_redraw_timer = 10 #every n second redraw the whole screen
-screen_colors_templates = {'default': (1, 0, 0),  # id,foreground,background
-                           'todo': (2, 0, 0),
-                           'done': (3, 0, 0),
-                           'best': (4, 0, 0),
-                           'manual_worker': (5, 0, 0),
-                           'red_border': (6, 0, 0)}
-
+KERAS_BACKEND = "theano"
+#KERAS_BACKEND = "tensorflow"
 
 # GA server-settings for cluster:
 jobserver_portrange = 40100,40500

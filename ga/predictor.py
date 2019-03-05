@@ -14,29 +14,28 @@ from rdkit.Chem import PandasTools as pdt
 import pandas as pd
 
 def parse_options():
-    desc = """Builds a NeuronalNetwork and evaluates it using a defined dataset.
-Prints results to stdout if no other output-options used"""
+    desc = """Predicts all molecules using a NeuronalNetwork."""
 
     parser = argparse.ArgumentParser(description=desc,
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('sdf', type=str, help="sdf-file to predict")
-    parser.add_argument('--model', type=str, default="GradientBoost", help="model to use")
-    parser.add_argument('model_configs', nargs='+', type=str, help="Path to config-files (result of a GA-run).")
-    parser.add_argument('--id', type=str, default=None, help="id-column of sdf-file")
-    parser.add_argument('--pred_col', type=str, default='Prediction', help="Name of the new column.")
-    parser.add_argument('--wrapper', type=bool, default=False, help="Wrapper argument to override the descriptor calculation")
-    parser.add_argument('--save_csv', type=str, default="output.csv", help="write results into this csv_file")
-    parser.add_argument('--save_sdf', type=str, default=None, help="write results into this sdf_file")
-    parser.add_argument('--write_all', action='store_true', default=False, help="write results into this sdf_file")
+    parser.add_argument('sdf', type=str, help="SD-File to predict.")
+    parser.add_argument('--model', type=str, default="NeuralNet", help="Model type to use: NeuralNet or GradientBoost.")
+    parser.add_argument('model_config', nargs='+', type=str, help="Path to model_config file (result of a GA-run).")
+    parser.add_argument('--id', type=str, default=None, help="Id-column of the SD-File.")
+    parser.add_argument('--pred_col', type=str, default='Prediction', help="Prefix of new columns.")
+    parser.add_argument('--wrapper', type=bool, default=False, help="Wrapper argument to override the descriptor calculation.")
+    parser.add_argument('--save_csv', type=str, default="output.csv", help="Write results into this csv_file.")
+    parser.add_argument('--save_sdf', type=str, default=None, help="Write results into this SD-File.")
+    parser.add_argument('--write_all', action='store_true', default=False, help="Write all existing properties of the input SD-File into the resulting file.")
     options = parser.parse_args()
     error = False
-    for config_file in options.model_configs:
+    for config_file in options.model_config:
         if not os.path.isfile(config_file):
             error = True
-            print("Couldn't find model {}".format(options.model_configs),file=sys.stderr)
+            print("Couldn't find model {}".format(options.model_config),file=sys.stderr)
     if not os.path.isfile(options.sdf):
         error = True
-        print("Couldn't find sdf {}".format(options.sdf),file=sys.stderr)
+        print("Couldn't find SD-File {}".format(options.sdf),file=sys.stderr)
     if error:
         parser.print_help()
         sys.exit(-1)
@@ -244,8 +243,11 @@ def save_csv(mols,predictions,filename,id_col=None,write_all=False,delim=',',pre
             if write_all:
                 entry_items += [mol.GetProp(prop) if mol.HasProp(prop) else "" for prop in props ]
 
-            if len(prediction_cols)==1:
+            if(predictions.shape[0] == 1):
+                entry_items += [str(predictions[0][i])]
+            elif (len(prediction_cols) == 1):
                 entry_items += [str(predictions[i])]
+
             else:
                 for p,prediction in enumerate(prediction_cols):
                     entry_items += [str(predictions[p][i])]
@@ -352,7 +354,10 @@ if __name__ == '__main__':
 
     predictions = []
     y_preds = []
-    for config_file in options.model_configs:
+
+    if(len(options.model_config) > 1):
+        print("Warning: Only the first model config file is used", file=sys.stderr)
+    for config_file in options.model_config:
         print("load models of {}".format(config_file),file=sys.stderr)
         if options.model == "NeuralNet":
             model = NN_arch(config_file)
@@ -369,10 +374,13 @@ if __name__ == '__main__':
         predictions.append(prediction)
         y_preds = y_pred # just one architecture
         print("got {} predictions".format(len(prediction)),file=sys.stderr)
+        break
 
-    consense_prediction = np.median(predictions,axis=0) # consense over multiple architectures
-    write_all = True
     predictions = np.array(predictions)
+    write_consensus = predictions.shape[0] > 1
+    consense_prediction = np.median(predictions,axis=0) # consense over multiple architectures
+
+    write_all = True
     y_preds = np.array(y_preds)
 
     if options.save_csv is not None or options.save_sdf is None:
@@ -380,7 +388,8 @@ if __name__ == '__main__':
             df = pd.DataFrame({id_col: np.argmax(b, axis=1), pred_col: consense_prediction})
             df.to_csv(options.save_csv, sep="\t")
         else:
-            save_csv(mols, consense_prediction, "consense_" + options.save_csv, id_col=id_col, write_all=write_all, delim=";",prediction_cols=[pred_col]),
+            if(write_consensus):
+                save_csv(mols, consense_prediction, "consense_" + options.save_csv, id_col=id_col, write_all=write_all, delim=";",prediction_cols=[pred_col]),
             pred_cols = [pred_col+"_"+str(p) for p in range(len(y_preds))]
             save_csv(mols, y_preds, options.save_csv, id_col=id_col, write_all=write_all,
                      delim=";", prediction_cols=pred_cols),

@@ -2,18 +2,16 @@
 
 # Cluster job configuration
 #SBATCH --gres=gpu:1
-#SBATCH -p GTX
+#SBATCH -p <queue-name>
 #SBATCH -n1
 
 # Source conda environment and/or define required environmental variables to enable cuda computing
-source /SW/python/miniconda3/x86_64/bin/activate guido_masterthesis
-export LIBRARY_PATH=/SW/CUDA/CUDNN/cuda/lib64
-export LD_LIBRARY_PATH=/SW/CUDA/CUDNN/cuda/lib64:/usr/local/cuda-7.5/lib64:/usr/local/cuda-7.5/lib:/SW/oracle/lib
-export CPATH=/SW/CUDA/CUDNN/cuda/include
-export PATH=/usr/local/cuda-7.5/bin:/usr/local/cuda/bin:/SW/python/miniconda3/x86_64/envs/guido_masterthesis/bin:/SW/python/miniconda3/x86_64/bin:/SW/oracle/bin:/usr/local/bin:/usr/bin:/bin:/usr/bin/X11:/usr/games:/usr/lib
-export CONDA_PATH_BACKUP=/SW/python/miniconda3/x86_64/bin:/SW/oracle/bin:/usr/local/bin:/usr/bin:/bin:/usr/bin/X11:/usr/games:/usr/lib
-export CUDNNDIR=/SW/CUDA/CUDNN/cuda
-export CUDA_ROOT=/usr/local/cuda-7.5
+source activate ga_env
+
+export PATH=/usr/local/cuda/bin:$PATH
+export LIBRARY_PATH=/usr/local/cuda/lib64:$LIBRARY_PATH
+export LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
+export CUDA_ROOT=/usr/local/cuda
 
 host=${1}
 port=${2}
@@ -29,6 +27,9 @@ model=${11}
 trainer_folder=${12}
 trainer_py_path=${13}
 
+DIR=`dirname $0`
+backend=`cd $DIR; python -c 'import settings;print(settings.KERAS_BACKEND)'`
+
 echo "host $host"
 echo "port $port"
 echo "train_sdf $train_sdf"
@@ -41,4 +42,5 @@ sleep 0.1 # we don't wanna be faster than the server/listener
 
 cd $trainer_folder
 
-KERAS_BACKEND=theano python $trainer_py_path $train_sdf $test_sdf --server "$host:$port" --tl_col $label_col --slave_mode --fp_size $fp_size --smarts_patterns $smarts_patterns --descriptors $descriptors --wrapper $wrapper --external_test $external_test --model $model
+echo "call is KERAS_BACKEND=$backend python $trainer_py_path $train_sdf $test_sdf --server '$host:$port' --tl_col $label_col --slave_mode --fp_size $fp_size --smarts_patterns $smarts_patterns --descriptors $descriptors --wrapper $wrapper --external_test $external_test --model $model"
+KERAS_BACKEND=$backend python $trainer_py_path $train_sdf $test_sdf --server "$host:$port" --tl_col $label_col --slave_mode --fp_size $fp_size --smarts_patterns $smarts_patterns --descriptors $descriptors --wrapper $wrapper --external_test $external_test --model $model
