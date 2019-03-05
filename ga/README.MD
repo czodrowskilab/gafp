@@ -147,7 +147,7 @@ You should run the GA on a head-node of a GPU-cluster or on a server with GPU-Ca
 We recommend to split a SD-File into k folds using our script sdf_splitter.py and using the option --folder of the Genetic Searcher to provide a folder containing the SD-Files.
 
 ### Predict molecules using the resulting predictors
-Usage: |
+Usage:
 ```bash
 predictor.py [-h] [--model MODEL] [--id ID] [--pred_col PRED_COL]
                     [--wrapper WRAPPER] [--save_csv SAVE_CSV]
@@ -185,7 +185,7 @@ optional arguments:
     sed 's/inactive/0/g' herg_chembl_fs.sdf | sed 's/active/1/g' > herg_chembl_fs_digit.sdf
     ```
 
-3. Split dataset into 5 folds:|
+3. Split dataset into 5 folds:
     ```bash
     python Tools/sdf_splitter.py --folder=datasets --splitfold=5 herg_chembl_fs_digit.sdf hERG_class
     ```
