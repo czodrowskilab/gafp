@@ -36,6 +36,8 @@ to train categorical and continuous models and make predictions.
 
   See 'cream categorical --help' for details.
   
+                  Subcommand 'continuous'
+  
   6b) Specify the regressor and parameters to train a continuous model.
   
   See 'cream continuous --help' for details.
