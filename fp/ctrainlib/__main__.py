@@ -103,6 +103,9 @@ def _model_processing(args: Namespace, subparser: ArgumentParser, regression: bo
         except ValueError:
             subparser.error('--fingerprint-filter have to be "auto" or a float value between 0.0 and 1.0')
 
+    if fingerprint_filter and fingerprint_filter == 'auto' and args.classifier == 'NeuralNet':
+        subparser.error('Fingerprint filter auto mode is not available for neural networks')
+
     logging.info('Loading data from pickle file...')
     try:
         with open(args.pickle, 'rb') as pickle_file:

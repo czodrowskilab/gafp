@@ -12,7 +12,7 @@ class RandomForest:
     lib = 'sklearn.ensemble'
     cls = 'RandomForestRegressor'
     params = {
-        'n_estimators': Type(int, 10),
+        'n_estimators': Type(int, 100),
         'criterion': Choices(['mse', 'mae'], 'mse'),
         'max_features': Type(max_features_type, 'auto'),
         'max_depth': Type(int, None),

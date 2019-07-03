@@ -86,6 +86,11 @@ def do_training(estimator: Any,
         train_categories = [str(x) for x in range(len(categories))]
         y_data = pd.cut(y_data, bins=bins, include_lowest=True, right=False, labels=train_categories)
 
+    est_options = _adjust_estimator_options(estimator, est_options,
+                                            n_categories=len(categories),
+                                            random_seed=random_seed,
+                                            n_features=len(x_data.columns))
+
     redundant_cols = None
     if fp_filter:
         logging.info('Start fingerprint filtering...')
@@ -94,19 +99,17 @@ def do_training(estimator: Any,
         if bits == 0:
             raise ValueError('No fingerprint columns available')
         redundant_cols = _do_fingerprint_filtering(fp_filter, x_data, y_data,
-                                                   estimator, est_options, random_seed, fp_cols)
+                                                   estimator, est_options, fp_cols)
         x_data = x_data.drop(columns=redundant_cols)
         new_bits = bits - len(redundant_cols)
         logging.info(f'Reduced bit count: {bits} => {new_bits}')
+        est_options = _adjust_estimator_options(estimator, est_options,
+                                                n_categories=len(categories),
+                                                random_seed=random_seed,
+                                                n_features=len(x_data.columns))
 
     if len(x_data.columns) == 0:
         raise ValueError('No training data left after fingerprint filtering')
-
-    est_options = _adjust_estimator_options(estimator, est_options,
-                                            n_categories=len(categories),
-                                            random_seed=random_seed,
-                                            n_features=len(x_data.columns),
-                                            model_name=name)
 
     scaler = None
     if feature_scaling is not None:
@@ -250,7 +253,7 @@ def _do_clustering(x_data: DataFrame, n_clusters: int, random_state: int, smiles
 
 def _do_fingerprint_filtering(filter_val: Union[str, float], x_data: DataFrame, y_data: Series = None,
                               classifier: Any = None, clf_options: Dict[str, Any] = None,
-                              random_seed: int = None, fp_cols: List[str] = None) -> List[str]:
+                              fp_cols: List[str] = None) -> List[str]:
     """
     Filters fingerprint bits by variance and returns all column names with a lower variance as the given threshold.
     If ``filter_val`` is "auto", the best variance threshold will be searched by testing all thresholds between
@@ -274,8 +277,6 @@ def _do_fingerprint_filtering(filter_val: Union[str, float], x_data: DataFrame, 
     clf_options : Dict[str, Any]
         Dictionary with additional classifier options passed to the constructor of ``classifier``.
         If `filter_val` is not ``auto``, this can be None.
-    random_seed : int
-        Random seed used to split the data set for the 5-fold cross validation and for training the mode
     fp_cols : List[str]
         List of fingerprint column names to filter by variance in `x_data`
 
@@ -287,7 +288,6 @@ def _do_fingerprint_filtering(filter_val: Union[str, float], x_data: DataFrame, 
 
     if filter_val == 'auto':
         logging.info('Fingerprint variance threshold search running...')
-        clf_options['random_state'] = random_seed
         thresholds = search_fingerprint_thresholds(x_data, y_data, classifier, clf_options)
         results_df = pd.DataFrame.from_dict(thresholds, orient='index').reset_index()
         results_df.columns = ['threshold', 'kappa_values', 'kappa_mean', 'kappa_std', 'n_bits']

@@ -13,7 +13,7 @@ class RandomForest:
     lib = 'sklearn.ensemble'
     cls = 'RandomForestClassifier'
     params = {
-        'n_estimators': Type(int, 10),
+        'n_estimators': Type(int, 100),
         'criterion': Choices(['gini', 'entropy'], 'gini'),
         'max_features': Type(max_features_type, 'auto'),
         'max_depth': Type(int, None),
