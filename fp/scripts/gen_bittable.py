@@ -143,8 +143,8 @@ ax.set_xticklabels(keys)
 plt.ylabel('Absolute substructure frequency')
 plt.xlabel('Fingerprint bit')
 text_yoffset = 5
-text_xoffset = -0.125
 for i in keys:
+    text_xoffset = -0.125 if uniques[i] < 100 else -0.185
     plt.text(i + text_xoffset, bottoms[i] + text_yoffset, uniques[i], weight='bold')
 
 plt.savefig('substructures.png', dpi=400)
