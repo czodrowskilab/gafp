@@ -191,6 +191,9 @@ def search_fingerprint_thresholds(x_data: DataFrame,
     scorer = make_scorer(cohen_kappa_score)
     y_data = np.array(y_data)
 
+    skf = StratifiedKFold(n_splits=cv, shuffle=shuffle, random_state=clf_options['random_state'])
+    kf = list(skf.split(X=x_data, y=y_data))
+
     results = {}
     for thresh in threshold_range:
         redundant_cols = _get_redundant_cols(variance, fp_cols, thresh)
@@ -199,9 +202,6 @@ def search_fingerprint_thresholds(x_data: DataFrame,
         filtered_x_data = np.array(filtered_x_data)
 
         clf = classifier(**clf_options)
-        skf = StratifiedKFold(n_splits=cv, shuffle=shuffle, random_state=clf_options['random_state'])
-        kf = skf.split(X=filtered_x_data, y=y_data)
-
         scores = cross_val_score(clf, filtered_x_data, y_data,
                                  cv=kf,
                                  scoring=scorer)
