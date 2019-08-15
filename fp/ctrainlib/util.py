@@ -1,6 +1,8 @@
 from copy import copy
 from typing import List, Dict, Optional, Any, Callable, Union
 
+PICKLE_PROTOCOL = 4
+
 
 class Type:
     """

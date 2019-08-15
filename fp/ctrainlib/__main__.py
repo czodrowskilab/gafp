@@ -11,8 +11,6 @@ from ctrainlib import help_texts, rdkit_support, fplib, classifiers, train, util
 
 logging.basicConfig(level=logging.INFO, format='%(message)s')
 
-PICKLE_PROTOCOL = 4
-
 parser = ArgumentParser(description=help_texts.PARSER_DESC,
                         epilog=help_texts.PARSER_EPI,
                         formatter_class=RawDescriptionHelpFormatter,
@@ -183,7 +181,7 @@ def _model_processing(args: Namespace, subparser: ArgumentParser, regression: bo
     logging.info('Saving model to file...')
     try:
         with open(args.model_name + '.model', 'wb') as outfile:
-            outfile.write(pickletools.optimize(pickle.dumps(model, protocol=PICKLE_PROTOCOL)))
+            outfile.write(pickletools.optimize(pickle.dumps(model, protocol=util.PICKLE_PROTOCOL)))
     except IOError:
         subparser.error(f'Could not open file {args.model_name + ".model"} for writing!')
 
@@ -346,7 +344,7 @@ def do_addprops(args: Namespace) -> None:
         to_pickle['smiles'] = rdkit_support.get_smiles_from_mols(df['ROMol'])
     try:
         with open(args.save_pickle, 'wb') as file:
-            pickle.dump(to_pickle, file, protocol=PICKLE_PROTOCOL)
+            pickle.dump(to_pickle, file, protocol=util.PICKLE_PROTOCOL)
     except IOError:
         addprops.error(f'Could not open file {args.save_pickle} for writing!')
 

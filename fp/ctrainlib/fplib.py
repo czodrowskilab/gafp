@@ -1,8 +1,8 @@
 import logging
+import os
 import pickle as pkl
 import pickletools as pkltools
 import re
-import os
 import sqlite3 as sql
 from copy import copy
 from typing import Tuple, Union, List, Dict, Optional, Any, Callable
@@ -19,6 +19,8 @@ from rdkit.Chem.rdMolDescriptors import \
 from rdkit.Chem.rdmolops import RDKFingerprint, PatternFingerprint, LayeredFingerprint
 from sklearn.metrics import cohen_kappa_score, make_scorer
 from sklearn.model_selection import cross_val_score, StratifiedKFold
+
+from ctrainlib.util import PICKLE_PROTOCOL
 
 # Functions belonging to the fingerprint type names
 _fp_func = {
@@ -57,8 +59,8 @@ _fp_default_param = {
 }
 
 # Regex patterns to check on fingerprint definitions (1) and fingerprint column names (2)
-_fp_def_pat = re.compile('^([\w-]+)=(.*)$')
-_fp_col_pat = re.compile('.+\[\d+\]')
+_fp_def_pat = re.compile(r'^([\w-]+)=(.*)$')
+_fp_col_pat = re.compile(r'.+\[\d+\]')
 
 
 def _get_redundant_cols(variance: List[float], fp_cols: List[str], threshold: float) -> List[str]:
@@ -412,7 +414,7 @@ def create_fpcdb(filename: str, ids: List[str], smiles: List[str],
     cur.execute('CREATE TABLE fpcdb (id TEXT PRIMARY KEY NOT NULL, smiles TEXT NOT NULL, fp BLOB NOT NULL, value REAL)')
     cur.execute('CREATE TABLE settings (name TEXT PRIMARY KEY NOT NULL, value TEXT NOT NULL)')
 
-    fp_objs = list(map(lambda x: pkltools.optimize(pkl.dumps(x, pkl.HIGHEST_PROTOCOL)), fp_objs))
+    fp_objs = list(map(lambda x: pkltools.optimize(pkl.dumps(x, PICKLE_PROTOCOL)), fp_objs))
     if not values:
         values = [None] * len(ids)
 
@@ -420,7 +422,7 @@ def create_fpcdb(filename: str, ids: List[str], smiles: List[str],
     cur.executemany('INSERT INTO fpcdb VALUES (?, ?, ?, ?)', rows)
 
     cur.execute('INSERT INTO settings VALUES (?, ?)',
-                ('fingerprint_info', pkltools.optimize(pkl.dumps(fp_def, pkl.HIGHEST_PROTOCOL))))
+                ('fingerprint_info', pkltools.optimize(pkl.dumps(fp_def, PICKLE_PROTOCOL))))
 
     con.commit()
     con.close()
@@ -487,7 +489,7 @@ def compute_fingerprints(df: DataFrame, to_compute: List[FingerprintInfo]) -> Da
             else:
                 mol_bits.extend(bits)
         all_bits.append(mol_bits)
-        print(f'\r{c+1}/{n_mols}' if (c + 1) % 10 == 0 else '', end='')
+        print(f'\r{c + 1}/{n_mols}' if (c + 1) % 10 == 0 else '', end='')
     print('\r', end='')
     logging.info('Creating DataFrame...')
     return pd.concat([df, DataFrame(np.array(all_bits, copy=False, dtype=np.uint8), columns=all_cols, copy=False)],
