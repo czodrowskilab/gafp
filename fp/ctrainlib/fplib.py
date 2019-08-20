@@ -200,11 +200,16 @@ def search_fingerprint_thresholds(x_data: DataFrame,
         filtered_x_data = x_data.drop(columns=redundant_cols)
         filtered_cols = filtered_x_data.columns
         filtered_x_data = np.array(filtered_x_data)
+        if filtered_x_data.shape[1] == 0:
+            logging.warning(f"Fingerprint variance threshold search was stopped at threshold {thresh} "
+                            "because the variance of all fingerprint bits are below this threshold")
+            break
 
         clf = classifier(**clf_options)
         scores = cross_val_score(clf, filtered_x_data, y_data,
                                  cv=kf,
-                                 scoring=scorer)
+                                 scoring=scorer,
+                                 error_score=np.nan)
         results[thresh] = (scores, scores.mean(), scores.std(), len(filtered_cols))
     return results
 

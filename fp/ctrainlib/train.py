@@ -289,6 +289,9 @@ def _do_fingerprint_filtering(filter_val: Union[str, float], x_data: DataFrame, 
     if filter_val == 'auto':
         logging.info('Fingerprint variance threshold search running...')
         thresholds = search_fingerprint_thresholds(x_data, y_data, classifier, clf_options)
+        if len(thresholds) == 0:
+            logging.warning('Fingerprint variance threshold search failed, skipping')
+            return []
         results_df = pd.DataFrame.from_dict(thresholds, orient='index').reset_index()
         results_df.columns = ['threshold', 'kappa_values', 'kappa_mean', 'kappa_std', 'n_bits']
         max_ix = results_df.kappa_mean.idxmax()
