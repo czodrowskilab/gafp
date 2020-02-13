@@ -12,10 +12,10 @@ The project dependencies are:
 * NumPy >= 1.15
 * Scikit-Learn >= 0.20
 * RDKit >= 2018.09
-* Pandas => 0.23
-* TensorFlow => 1.12
-* Keras => 2.2
-* XGBoost => 0.81
+* Pandas >= 0.23
+* TensorFlow >= 1.12
+* Keras >= 2.2
+* XGBoost >= 0.81
 
 Optionally you need Django 2.1 or higher to use the CREAM REST server.
 
@@ -28,15 +28,12 @@ https://conda.io/en/latest/miniconda.html.
 
 Now you can create and activate an environment with the following commands:
 ```bash
-conda create -n cream python=3.6
+conda create -n cream python=3.7
 conda activate cream
 ```
 
 At older Miniconda installations you have to use ``source activate cream`` to activate
 the environment.
-
-Note that CREAM itself also works with Python 3.7 but at this point not all 
-dependencies are available for a newer Python version than 3.6.
 
 Now you have to install the dependencies with the following commands. In case of Linux:
 ```bash
