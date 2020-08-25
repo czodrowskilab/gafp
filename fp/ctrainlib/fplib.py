@@ -10,6 +10,7 @@ from typing import Tuple, Union, List, Dict, Optional, Any, Callable
 import numpy as np
 import pandas as pd
 from pandas import DataFrame, Series
+from rdkit import DataStructs
 from rdkit.Chem import Mol
 from rdkit.Chem.rdMolDescriptors import \
     GetMACCSKeysFingerprint, \
@@ -487,7 +488,8 @@ def compute_fingerprints(df: DataFrame, to_compute: List[FingerprintInfo]) -> Da
     for c, mol in enumerate(df.ROMol):
         mol_bits = []
         for fp in to_compute:
-            bits = list(fp.func(mol, **fp.params))
+            bits = np.empty(fp.n_bits, int)
+            DataStructs.ConvertToNumpyArray(fp.func(mol, **fp.params), bits)
             if fp.name == 'MACCS166':
                 # RDKit generates for MACCS166 a 167 bit vector where the first bit is always 0
                 mol_bits.extend(bits[1:])
